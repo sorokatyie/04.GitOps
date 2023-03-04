@@ -1,0 +1,31 @@
+name: Tab Finder
+
+on:
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  tab-finder:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Find tabs in code
+      run: |
+        TOTAL_TABS=0
+        for file in $(git diff --name-only HEAD~1); do
+          if [ -f "$file" ]; then
+            TABS=$(grep -c $'\t' "$file")
+            if [ "$TABS" -ne 0 ]; then
+              echo "$file has $TABS tabs"
+              TOTAL_TABS=$((TOTAL_TABS + TABS))
+            fi
+          fi
+        done
+        echo "Found $TOTAL_TABS tabs in total"
+
+    - name: Upload tab count
+      if: always()
+      run: echo ::set-output name=tabcount::$TOTAL_TABS
