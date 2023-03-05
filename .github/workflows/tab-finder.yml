@@ -6,24 +6,23 @@ on:
       - '*'
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - name: Get changed files
-        id: changed-files
-        uses: tj-actions/changed-files@v34
-
-      - name: Save changed files in logfile
-        run: |
-          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
-            echo "$file"
-            echo "File $file have `grep '\t' $file | wc -l` tabs." >> files_report.log 2>&1
-          done
-      - name: Upload report
-        uses: actions/upload-artifact@v3
-        with:
-          path: files_report.log
+  my_testing:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v3
+          with:
+            fetch-depth: 0
+        - name: Get changed files
+          id: changed-files
+          uses: tj-actions/changed-files@v35
+        
+        - name: Found tabs in the files
+          run: |
+               for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+               echo "The $file has `grep -P '\t' $file | wc -l` tabs" >> report.log
+               done
+          
+        - name: Upload report
+          uses: actions/upload-artifact@v2
+          with:
+           path: report.log
