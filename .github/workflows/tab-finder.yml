@@ -6,23 +6,19 @@ on:
       - '*'
 
 jobs:
-  my_testing:
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v3
-          with:
-            fetch-depth: 0
-        - name: Get changed files
-          id: changed-files
-          uses: tj-actions/changed-files@v35
-        
-        - name: Found tabs in the files
-          run: |
-               for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
-               echo "The $file has `grep -P '\t' $file | wc -l` tabs" >> report.log
-               done
-          
-        - name: Upload report
-          uses: actions/upload-artifact@v2
-          with:
-           path: report.log
+  Explore-GitHub-Actions:
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout
+      uses: actions/checkout@v3
+    - id: files
+      uses: jitterbit/get-changed-files@v1
+    - name: setup python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10' # install the python version needed
+    - run: python  search_for_tabs.py  ${{ steps.files.outputs.added_modified }} > logfile.log
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        path: logfile.log
