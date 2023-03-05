@@ -1,31 +1,28 @@
-name: Tab Finder
+name: GitOps_tabs
 
-on:
-  pull_request:
-    branches:
-      - '*'
+on: pull_request
 
 jobs:
-  tab-finder:
+  build:
     runs-on: ubuntu-latest
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: pull modified files
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
-    - name: Find tabs in code
-      run: |
-        TOTAL_TABS=0
-        for file in $(git diff --name-only HEAD~1); do
-          if [ -f "$file" ]; then
-            TABS=$(grep -c $'\t' "$file")
-            if [ "$TABS" -ne 0 ]; then
-              echo "$file has $TABS tabs"
-              TOTAL_TABS=$((TOTAL_TABS + TABS))
-            fi
-          fi
-        done
-        echo "Found $TOTAL_TABS tabs in total"
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v34
 
-    - name: Upload tab count
-      if: always()
-      run: echo ::set-output name=tabcount::$TOTAL_TABS
+      - name: Count tabs in changed files
+        run: |
+           for file in ${{ steps.changed-files.outputs.all_changed_and_modified_files }}; do
+             echo "$file was changed"
+             echo "Tab count in ${file} is $(grep -c $'\t' ${file})" > report.log
+           done
+      - name: Upload report
+        uses: actions/upload-artifact@v3
+        with:
+          path: report.log
