@@ -14,18 +14,10 @@ jobs:
 
     - name: Find tabs in code
       run: |
-        TOTAL_TABS=0
-        for file in $(git diff --name-only HEAD~1); do
-          if [ -f "$file" ]; then
-            TABS=$(grep -c $'\t' "$file")
-            if [ "$TABS" -ne 0 ]; then
-              echo "$file has $TABS tabs"
-              TOTAL_TABS=$((TOTAL_TABS + TABS))
-            fi
-          fi
-        done
-        echo "Found $TOTAL_TABS tabs in total"
-
-    - name: Upload tab count
-      if: always()
-      run: echo ::set-output name=tabcount::$TOTAL_TABS
+           for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+           echo "The $file has `grep -P '\t' $file | wc -l` tabs" >> report.log
+           done
+    - name: Upload report
+      uses: actions/upload-artifact@v2
+      with:
+       path: report.log
